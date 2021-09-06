@@ -3,7 +3,7 @@ The backend for a Symmetric node.
 
 ## To run the backend server you need to:
 
-### Create a PostgreSQL database with name of symmetric as well as set a password for the postgres user
+### Create a PostgreSQL database with name of ```symmetric``` as well as set a password for the ```postgres``` user
 
 ### Create an ```.env``` file which holds sensitive data like passwords, instructions for Linux (Ubuntu, macOS and more).
 ```touch .env```
