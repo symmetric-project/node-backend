@@ -5,7 +5,7 @@ The backend for a Symmetric node.
 We have a contributing guide over [here](CONTRIBUTING.org) 
 
 ## Community
-You can contact us by joining our discord '[]'
+You can contact us by joining our discord [here](https://discord.com/invite/AkSbP5JF)
 ## To run the backend server you need to:
 
 ### Create a PostgreSQL database with name of ```symmetric``` as well as set a password for the ```postgres``` user
