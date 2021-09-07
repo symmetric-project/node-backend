@@ -19,9 +19,14 @@
 .env.build
 .env.local
 
-# macOS folder files
+# MacOS folder files
 **/.DS_Store
 
 # Air temporary files
 .air.toml
 tmp/
+
+# Gqlgen temporary files
+graph/generated
+graph/model
+graph/schema.resolvers.go
