@@ -19,4 +19,4 @@ create better documentation than is currently available
 get a node running
 create a programming style guide to make future bug fixes and development easier
 create the documentation required to get the node running
-release a pre-alpha test version that can run on
+release a pre-alpha test version that can run on a home server
