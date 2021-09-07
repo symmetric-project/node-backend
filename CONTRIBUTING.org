@@ -13,3 +13,10 @@ If you need any help at all contributing to this project, you can take a look at
 ** What to contribute:
 This is where our list of goals will be once they are solidified.
 Our project needs should be here by the end of the week, so check back in then.
+What the fuzzy goals currently are:
+create more specific, short term goals
+create better documentation than is currently available
+get a node running
+create a programming style guide to make future bug fixes and development easier
+create the documentation required to get the node running
+release a pre-alpha test version that can run on
