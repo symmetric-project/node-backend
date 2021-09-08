@@ -1,3 +1,9 @@
+![license](https://img.shields.io/github/license/symmetric-project/node-backend)
+![coverage](https://img.shields.io/github/license/symmetric-project/node-backend)
+![stars](https://img.shields.io/github/stars/symmetric-project/node-backend)
+![forks](https://img.shields.io/github/forks/symmetric-project/node-backend)
+![issues](https://img.shields.io/github/issues/symmetric-project/node-backend)
+
 # node-backend
 The backend for a Symmetric node.
 
