@@ -1,6 +1,10 @@
 package main
 
 import (
+	"os"
+
+	"github.com/gin-contrib/cors"
+	"github.com/joho/godotenv"
 	"github.com/symmetric-project/node-backend/graph"
 	"github.com/symmetric-project/node-backend/graph/generated"
 
@@ -24,9 +28,33 @@ func graphqlPlaygroundHandler() gin.HandlerFunc {
 	}
 }
 
+var MODE string
+var DOMAIN_DEV string
+var DOMAIN_PROD string
+var G *gin.Engine
+
+func init() {
+	godotenv.Load()
+	MODE = os.Getenv("MODE")
+	DOMAIN_DEV = os.Getenv("DOMAIN_DEV")
+	DOMAIN_PROD = os.Getenv("DOMAIN_PROD")
+}
+
 func main() {
-	r := gin.Default()
-	r.POST("/", graphqlHandler())
-	r.GET("/", graphqlPlaygroundHandler())
-	r.Run(":4000")
+	G = gin.Default()
+	allowedOrigins := make([]string, 0)
+	if MODE == "prod" {
+		allowedOrigins = append(allowedOrigins, "https://"+DOMAIN_PROD)
+	} else {
+		allowedOrigins = append(allowedOrigins, "http://"+DOMAIN_DEV)
+	}
+	G.Use(cors.New(cors.Config{
+		AllowOrigins:     allowedOrigins,
+		AllowCredentials: true,
+		AllowMethods:     []string{"GET", "POST"},
+		AllowHeaders:     []string{"Content-Type"},
+	}))
+	G.POST("/", graphqlHandler())
+	G.GET("/", graphqlPlaygroundHandler())
+	G.Run(":4000")
 }
