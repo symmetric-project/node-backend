@@ -11,14 +11,14 @@ enum NodeAccess {
 type Post {
   id: ID!
   name: String!
-  content: String
   link: String
+  delta: String
 }
 
 input NewPost {
   name: String!
-  content: String
   link: String
+  delta: String
 }
 
 type Node {
