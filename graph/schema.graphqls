@@ -1,22 +1,47 @@
-# GraphQL schema example
+# GraphQL schema
 #
 # https://gqlgen.com/getting-started/
 
+enum NodeAccess {
+  PUBLIC
+  RESTRICTED
+  PRIVATE
+}
+
 type Post {
   id: ID!
-  title: String!
-  content: String!
+  name: String!
+  content: String
+  link: String
 }
 
 input NewPost {
-  title: String!
-  content: String!
+  name: String!
+  content: String
+  link: String
+}
+
+type Node {
+  id: ID!
+  name: String!
+  tags: [String]!
+  access: NodeAccess!
+  nsfw: Boolean!
+}
+
+input NewNode {
+  name: String!
+  tags: [String]!
+  access: NodeAccess!
+  nsfw: Boolean!
 }
 
 type Query {
   posts: [Post!]!
+  nodes: [Node!]!
 }
 
 type Mutation {
   createPost(input: NewPost!): Post!
+  createNode(input: NewNode!): Node!
 }
