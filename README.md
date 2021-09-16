@@ -35,4 +35,10 @@ openssl rand -base64 64
 ```
 After running it, you should see get a random string which you can use as a ```JWT_SECRET```
 
+### Generate gqlgen
+
 Run `gqlgen generate` in the root folder. This will generate Go types from the `schema.graphqls` file.
+
+### Install sqlc
+
+https://docs.sqlc.dev/en/latest/overview/install.html
