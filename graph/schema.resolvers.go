@@ -9,13 +9,12 @@ import (
 	"github.com/symmetric-project/node-backend/errors"
 
 	_ "github.com/jackc/pgx/stdlib"
-	"github.com/lib/pq"
 	"github.com/symmetric-project/node-backend/graph/generated"
 	"github.com/symmetric-project/node-backend/graph/model"
 )
 
-func (r *mutationResolver) CreatePost(ctx context.Context, input model.NewPost) (*model.Post, error) {
-	builder := SQ.Insert("post").Columns("name", "link", "delta").Values(input.Name, input.Link, input.Delta)
+func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost) (*model.Post, error) {
+	builder := SQ.Insert("post").Columns("title", "link", "delta").Values(newPost.Title, newPost.Link, newPost.Delta)
 	var post model.Post
 	query, args, err := builder.ToSql()
 	if err != nil {
@@ -26,15 +25,15 @@ func (r *mutationResolver) CreatePost(ctx context.Context, input model.NewPost) 
 	return &post, err
 }
 
-func (r *mutationResolver) CreateNode(ctx context.Context, input model.NewNode) (*model.Node, error) {
-	builder := SQ.Insert("node").Columns("name", "tags", "access", "nsfw").Values(input.Name, pq.Array(input.Tags), input.Access, input.Nsfw)
+func (r *mutationResolver) CreateNode(ctx context.Context, newNode model.NewNode) (*model.Node, error) {
+	builder := SQ.Insert("node").Columns("name", "access", "nsfw").Values(newNode.Name, newNode.Access, newNode.Nsfw).Suffix(`RETURNING *`)
 	var node model.Node
 	query, args, err := builder.ToSql()
 	if err != nil {
 		errors.Stacktrace(err)
 		return &node, err
 	}
-	err = DB.QueryRow(query, args...).Scan(node)
+	err = DB.Get(&node, query, args...)
 	return &node, err
 }
 
@@ -52,7 +51,7 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
 
 func (r *queryResolver) Nodes(ctx context.Context) ([]*model.Node, error) {
 	var nodes []*model.Node
-	builder := SQ.Select("*").From("post")
+	builder := SQ.Select("*").From("node")
 	query, args, err := builder.ToSql()
 	if err != nil {
 		errors.Stacktrace(err)

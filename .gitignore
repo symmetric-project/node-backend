@@ -28,4 +28,3 @@ tmp/
 
 # Gqlgen temporary files
 graph/generated
-graph/model

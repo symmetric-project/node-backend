@@ -3,20 +3,27 @@
 # https://gqlgen.com/getting-started/
 
 enum NodeAccess {
-  PUBLIC
-  RESTRICTED
-  PRIVATE
+  public
+  restricted
+  private
+}
+
+enum PostType {
+  text
+  media
+  link
 }
 
 type Post {
   id: ID!
-  name: String!
+  title: String!
   link: String
   delta: String
 }
 
 input NewPost {
-  name: String!
+  type: PostType!
+  title: String!
   link: String
   delta: String
 }
@@ -24,14 +31,14 @@ input NewPost {
 type Node {
   id: ID!
   name: String!
-  tags: [String]!
+  tags: [String]
   access: NodeAccess!
   nsfw: Boolean!
 }
 
 input NewNode {
   name: String!
-  tags: [String]!
+  tags: [String]
   access: NodeAccess!
   nsfw: Boolean!
 }
@@ -42,6 +49,6 @@ type Query {
 }
 
 type Mutation {
-  createPost(input: NewPost!): Post!
-  createNode(input: NewNode!): Node!
+  createPost(newPost: NewPost!): Post!
+  createNode(newNode: NewNode!): Node!
 }
