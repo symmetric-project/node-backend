@@ -9,10 +9,11 @@ import (
 )
 
 type NewNode struct {
-	Name   string     `json:"name"`
-	Tags   []*string  `json:"tags"`
-	Access NodeAccess `json:"access"`
-	Nsfw   bool       `json:"nsfw"`
+	Name        string     `json:"name"`
+	Tags        []*string  `json:"tags"`
+	Access      NodeAccess `json:"access"`
+	Nsfw        bool       `json:"nsfw"`
+	Description *string    `json:"description"`
 }
 
 type NewPost struct {
@@ -22,13 +23,14 @@ type NewPost struct {
 	Delta *string  `json:"delta"`
 }
 
-/* type Node struct {
-	ID     string     `json:"id"`
-	Name   string     `json:"name"`
-	Tags   []*string  `json:"tags"`
-	Access NodeAccess `json:"access"`
-	Nsfw   bool       `json:"nsfw"`
-} */
+type Node struct {
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	Tags        []*string  `json:"tags"`
+	Access      NodeAccess `json:"access"`
+	Nsfw        bool       `json:"nsfw"`
+	Description *string    `json:"description"`
+}
 
 type Post struct {
 	ID    string  `json:"id"`

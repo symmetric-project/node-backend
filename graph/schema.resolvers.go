@@ -8,7 +8,7 @@ import (
 
 	"github.com/symmetric-project/node-backend/errors"
 
-	_ "github.com/jackc/pgx/stdlib"
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/symmetric-project/node-backend/graph/generated"
 	"github.com/symmetric-project/node-backend/graph/model"
 )
@@ -21,7 +21,7 @@ func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost
 		errors.Stacktrace(err)
 		return &post, err
 	}
-	err = DB.QueryRow(query, args...).Scan(post)
+	err = pgxscan.Select(context.Background(), DB, &post, query, args...)
 	return &post, err
 }
 
@@ -33,20 +33,20 @@ func (r *mutationResolver) CreateNode(ctx context.Context, newNode model.NewNode
 		errors.Stacktrace(err)
 		return &node, err
 	}
-	err = DB.Get(&node, query, args...)
+	err = pgxscan.Select(context.Background(), DB, &node, query, args...)
 	return &node, err
 }
 
-func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
-	var posts []*model.Post
-	builder := SQ.Select("*").From("post")
+func (r *queryResolver) Node(ctx context.Context, name string) (*model.Node, error) {
+	var node model.Node
+	builder := SQ.Select("*").From("node").Where("name=$1", name)
 	query, args, err := builder.ToSql()
 	if err != nil {
 		errors.Stacktrace(err)
-		return posts, err
+		return &node, err
 	}
-	err = DB.Select(&posts, query, args...)
-	return posts, err
+	err = pgxscan.Get(context.Background(), DB, &node, query, args...)
+	return &node, err
 }
 
 func (r *queryResolver) Nodes(ctx context.Context) ([]*model.Node, error) {
@@ -57,8 +57,32 @@ func (r *queryResolver) Nodes(ctx context.Context) ([]*model.Node, error) {
 		errors.Stacktrace(err)
 		return nodes, err
 	}
-	err = DB.Select(&nodes, query, args...)
+	err = pgxscan.Select(context.Background(), DB, &nodes, query, args...)
 	return nodes, err
+}
+
+func (r *queryResolver) Post(ctx context.Context, id string) (*model.Post, error) {
+	var post model.Post
+	builder := SQ.Select("*").From("node").Where("id=$1", id)
+	query, args, err := builder.ToSql()
+	if err != nil {
+		errors.Stacktrace(err)
+		return &post, err
+	}
+	err = pgxscan.Get(context.Background(), DB, &post, query, args...)
+	return &post, err
+}
+
+func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
+	var posts []*model.Post
+	builder := SQ.Select("*").From("post")
+	query, args, err := builder.ToSql()
+	if err != nil {
+		errors.Stacktrace(err)
+		return posts, err
+	}
+	err = pgxscan.Select(context.Background(), DB, &posts, query, args...)
+	return posts, err
 }
 
 // Mutation returns generated.MutationResolver implementation.

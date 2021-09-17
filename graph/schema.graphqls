@@ -34,6 +34,7 @@ type Node {
   tags: [String]
   access: NodeAccess!
   nsfw: Boolean!
+  description: String
 }
 
 input NewNode {
@@ -41,11 +42,14 @@ input NewNode {
   tags: [String]
   access: NodeAccess!
   nsfw: Boolean!
+  description: String
 }
 
 type Query {
-  posts: [Post!]!
+  node(name: String!): Node
   nodes: [Node!]!
+  post(id: String!): Post
+  posts: [Post!]!
 }
 
 type Mutation {
