@@ -24,7 +24,6 @@ type NewPost struct {
 }
 
 type Node struct {
-	ID          string     `json:"id"`
 	Name        string     `json:"name"`
 	Tags        []*string  `json:"tags"`
 	Access      NodeAccess `json:"access"`
@@ -33,10 +32,11 @@ type Node struct {
 }
 
 type Post struct {
-	ID    string  `json:"id"`
-	Title string  `json:"title"`
-	Link  *string `json:"link"`
-	Delta *string `json:"delta"`
+	ID       string  `json:"id"`
+	Title    string  `json:"title"`
+	Link     *string `json:"link"`
+	Delta    *string `json:"delta"`
+	NodeName string  `json:"nodeName"`
 }
 
 type NodeAccess string

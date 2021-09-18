@@ -14,11 +14,21 @@ enum PostType {
   link
 }
 
+type User {
+  id: ID!
+  name: String!
+}
+
+input NewUser {
+  name: String
+}
+
 type Post {
   id: ID!
   title: String!
   link: String
   delta: String
+  nodeName: String!
 }
 
 input NewPost {
@@ -29,7 +39,6 @@ input NewPost {
 }
 
 type Node {
-  id: ID!
   name: String!
   tags: [String]
   access: NodeAccess!
@@ -49,7 +58,7 @@ type Query {
   node(name: String!): Node
   nodes: [Node!]!
   post(id: String!): Post
-  posts: [Post!]!
+  posts(nodeName: String): [Post]!
 }
 
 type Mutation {

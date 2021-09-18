@@ -6,11 +6,10 @@ package graph
 import (
 	"context"
 
-	"github.com/symmetric-project/node-backend/errors"
-
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/symmetric-project/node-backend/graph/generated"
 	"github.com/symmetric-project/node-backend/graph/model"
+	"github.com/symmetric-project/node-backend/utils"
 )
 
 func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost) (*model.Post, error) {
@@ -18,7 +17,7 @@ func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost
 	var post model.Post
 	query, args, err := builder.ToSql()
 	if err != nil {
-		errors.Stacktrace(err)
+		utils.Stacktrace(err)
 		return &post, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &post, query, args...)
@@ -30,7 +29,7 @@ func (r *mutationResolver) CreateNode(ctx context.Context, newNode model.NewNode
 	var node model.Node
 	query, args, err := builder.ToSql()
 	if err != nil {
-		errors.Stacktrace(err)
+		utils.Stacktrace(err)
 		return &node, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &node, query, args...)
@@ -42,7 +41,7 @@ func (r *queryResolver) Node(ctx context.Context, name string) (*model.Node, err
 	builder := SQ.Select("*").From("node").Where("name=$1", name)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		errors.Stacktrace(err)
+		utils.Stacktrace(err)
 		return &node, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &node, query, args...)
@@ -54,7 +53,7 @@ func (r *queryResolver) Nodes(ctx context.Context) ([]*model.Node, error) {
 	builder := SQ.Select("*").From("node")
 	query, args, err := builder.ToSql()
 	if err != nil {
-		errors.Stacktrace(err)
+		utils.Stacktrace(err)
 		return nodes, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &nodes, query, args...)
@@ -66,19 +65,22 @@ func (r *queryResolver) Post(ctx context.Context, id string) (*model.Post, error
 	builder := SQ.Select("*").From("node").Where("id=$1", id)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		errors.Stacktrace(err)
+		utils.Stacktrace(err)
 		return &post, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &post, query, args...)
 	return &post, err
 }
 
-func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
+func (r *queryResolver) Posts(ctx context.Context, nodeName *string) ([]*model.Post, error) {
 	var posts []*model.Post
 	builder := SQ.Select("*").From("post")
+	if nodeName != nil {
+		builder = builder.Where("node_name=$1", nodeName)
+	}
 	query, args, err := builder.ToSql()
 	if err != nil {
-		errors.Stacktrace(err)
+		utils.Stacktrace(err)
 		return posts, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &posts, query, args...)

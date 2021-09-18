@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/symmetric-project/node-backend/errors"
+	"github.com/symmetric-project/node-backend/utils"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/joho/godotenv"
@@ -28,7 +28,7 @@ func init() {
 	DB, err = pgxpool.Connect(context.Background(), DATABASE_URL)
 
 	if err != nil {
-		errors.Stacktrace(err)
+		utils.Stacktrace(err)
 		os.Exit(1)
 	}
 }
