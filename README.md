@@ -38,7 +38,3 @@ After running it, you should see get a random string which you can use as a ```J
 ### Generate gqlgen
 
 Run `gqlgen generate` in the root folder. This will generate Go types from the `schema.graphqls` file.
-
-### Install sqlc
-
-https://docs.sqlc.dev/en/latest/overview/install.html
