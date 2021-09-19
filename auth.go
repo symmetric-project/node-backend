@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
 
 	env "github.com/symmetric-project/node-backend/env"
+	"github.com/symmetric-project/node-backend/graph/model"
 	"github.com/symmetric-project/node-backend/utils"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +16,30 @@ import (
 )
 
 func authMiddlewareHandler(c *gin.Context) {
+	rawJWT, err := c.Request.Cookie("jwt")
+	log.Println(rawJWT)
 
+	// Allow unauthenticated users in
+	if err != nil || rawJWT == nil {
+		return
+	}
+
+	/* verifiedJWT, err := VerifyJWT(rawJWT.String())
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid jwt",
+		})
+		return
+	}
+
+	verifiedJWTClaims := verifiedJWT.Claims.(*jwt.StandardClaims)
+
+	// Get the user from the database
+	user := getUserByID(verifiedJWTClaims.Id) */
+
+	user := model.User{}
+
+	c.Set("user", user)
 }
 
 func GenerateJWT(jwtClaims jwt.StandardClaims) (string, error) {
@@ -46,9 +71,8 @@ func VerifyJWT(jwtString string) (*jwt.Token, error) {
 	}
 	if jwt.Valid {
 		return jwt, err
-	} else {
-		return jwt, errors.New("the JWT is not valid")
 	}
+	return jwt, errors.New("the JWT is not valid")
 }
 
 func VerifyJWTCookie(c *gin.Context) (*jwt.Token, error) {

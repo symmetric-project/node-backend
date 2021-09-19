@@ -14,20 +14,15 @@ var GIN *gin.Engine
 
 func main() {
 	GIN = gin.Default()
-	allowedOrigins := make([]string, 0)
 
+	allowedOrigins := make([]string, 0)
 	if env.CONFIG.MODE == "dev" {
 		allowedOrigins = append(allowedOrigins, "http://"+env.CONFIG.DOMAIN)
 	} else {
 		allowedOrigins = append(allowedOrigins, "https://"+env.CONFIG.DOMAIN)
 	}
 
-	GIN.Use(cors.New(cors.Config{
-		AllowOrigins:     allowedOrigins,
-		AllowCredentials: true,
-		AllowMethods:     []string{"GET", "POST"},
-		AllowHeaders:     []string{"Content-Type"},
-	}))
+	GIN.Use(cors.Default())
 
 	GIN.Use(authMiddlewareHandler)
 	GIN.POST("/", graphqlHandler())

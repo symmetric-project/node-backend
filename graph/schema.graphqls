@@ -15,8 +15,8 @@ enum PostType {
 }
 
 type User {
-  id: ID!
-  name: String!
+  name: ID!
+  bases: Int!
 }
 
 input NewUser {
@@ -39,7 +39,7 @@ input NewPost {
 }
 
 type Node {
-  name: String!
+  name: ID!
   tags: [String]
   access: NodeAccess!
   nsfw: Boolean!
@@ -59,9 +59,11 @@ type Query {
   nodes: [Node!]!
   post(id: String!): Post
   posts(nodeName: String): [Post]!
+  user(name: ID): User
 }
 
 type Mutation {
-  createPost(newPost: NewPost!): Post!
-  createNode(newNode: NewNode!): Node!
+  createPost(newPost: NewPost!): Post
+  createNode(newNode: NewNode!): Node
+  createUser(newUser: NewUser!): User
 }

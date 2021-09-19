@@ -23,6 +23,10 @@ type NewPost struct {
 	Delta *string  `json:"delta"`
 }
 
+type NewUser struct {
+	Name *string `json:"name"`
+}
+
 type Node struct {
 	Name        string     `json:"name"`
 	Tags        []*string  `json:"tags"`
@@ -37,6 +41,11 @@ type Post struct {
 	Link     *string `json:"link"`
 	Delta    *string `json:"delta"`
 	NodeName string  `json:"nodeName"`
+}
+
+type User struct {
+	Name  string `json:"name"`
+	Bases int    `json:"bases"`
 }
 
 type NodeAccess string
