@@ -17,10 +17,11 @@ type NewNode struct {
 }
 
 type NewPost struct {
-	Type  PostType `json:"type"`
-	Title string   `json:"title"`
-	Link  *string  `json:"link"`
-	Delta *string  `json:"delta"`
+	Type     PostType `json:"type"`
+	Title    string   `json:"title"`
+	Link     *string  `json:"link"`
+	Delta    *string  `json:"delta"`
+	NodeName string   `json:"nodeName"`
 }
 
 type NewUser struct {

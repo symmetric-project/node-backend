@@ -14,6 +14,8 @@ type Config struct {
 	DOMAIN      string
 	DOMAIN_DEV  string `mapstructure:"DOMAIN_DEV"`
 	DOMAIN_PROD string `mapstructure:"DOMAIN_PROD"`
+
+	SECURE_COOKIES bool
 }
 
 var CONFIG Config
@@ -29,10 +31,12 @@ func init() {
 	}
 
 	if CONFIG.MODE == "dev" {
+		CONFIG.SECURE_COOKIES = false
 		CONFIG.DOMAIN = CONFIG.DOMAIN_DEV
 		gin.SetMode("debug")
 
 	} else {
+		CONFIG.SECURE_COOKIES = true
 		CONFIG.DOMAIN = CONFIG.DOMAIN_PROD
 		gin.SetMode("release")
 

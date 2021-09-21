@@ -36,6 +36,7 @@ input NewPost {
   title: String!
   link: String
   delta: String
+  nodeName: String!
 }
 
 type Node {
@@ -55,9 +56,9 @@ input NewNode {
 }
 
 type Query {
-  node(name: String!): Node
-  nodes: [Node!]!
-  post(id: String!): Post
+  node(name: ID!): Node
+  nodes(substring: String): [Node!]!
+  post(id: ID!, title: String!): Post
   posts(nodeName: String): [Post]!
   user(name: ID): User
 }

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/gin-contrib/cors"
 	"github.com/symmetric-project/node-backend/env"
+	"github.com/symmetric-project/node-backend/handlers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,10 +22,8 @@ func main() {
 		allowedOrigins = append(allowedOrigins, "https://"+env.CONFIG.DOMAIN)
 	}
 
-	GIN.Use(cors.Default())
-
-	GIN.Use(authMiddlewareHandler)
-	GIN.POST("/", graphqlHandler())
-	GIN.GET("/", graphqlPlaygroundHandler())
+	GIN.Use(handlers.CORS())
+	GIN.POST("/", handlers.GraphQLHandler())
+	GIN.GET("/", handlers.GraphQLPlaygroundHandler())
 	GIN.Run(":4000")
 }
