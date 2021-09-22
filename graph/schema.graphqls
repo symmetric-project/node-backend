@@ -27,15 +27,17 @@ type Post {
   id: ID!
   title: String!
   link: String
-  delta: String
+  deltaOps: String
   nodeName: String!
+  slug: String!
+  creationTimestamp: Int!
 }
 
 input NewPost {
   type: PostType!
   title: String!
   link: String
-  delta: String
+  deltaOps: String
   nodeName: String!
 }
 
@@ -58,7 +60,7 @@ input NewNode {
 type Query {
   node(name: ID!): Node
   nodes(substring: String): [Node!]!
-  post(id: ID!, title: String!): Post
+  post(id: ID!, slug: String!): Post
   posts(nodeName: String): [Post]!
   user(name: ID): User
 }

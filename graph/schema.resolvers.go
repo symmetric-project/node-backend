@@ -13,11 +13,15 @@ import (
 	"github.com/symmetric-project/node-backend/graph/generated"
 	"github.com/symmetric-project/node-backend/graph/model"
 	"github.com/symmetric-project/node-backend/middleware"
+	"github.com/symmetric-project/node-backend/slug"
 	"github.com/symmetric-project/node-backend/utils"
 )
 
 func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost) (*model.Post, error) {
-	builder := SQ.Insert(`post`).Columns(`title`, `link`, `delta`, `node_name`).Values(newPost.Title, newPost.Link, newPost.Delta, newPost.NodeName).Suffix("RETURNING *")
+	id := utils.NewOctid()
+	slug := slug.Slugify(newPost.Title)
+	creationTimestamp := utils.CurrentTimestamp()
+	builder := SQ.Insert(`post`).Columns(`id`, `title`, `link`, `delta_ops`, `node_name`, `slug`, `creation_timestamp`).Values(id, newPost.Title, newPost.Link, newPost.DeltaOps, newPost.NodeName, slug, creationTimestamp).Suffix("RETURNING *")
 	var post model.Post
 	query, args, err := builder.ToSql()
 	if err != nil {
@@ -96,10 +100,10 @@ func (r *queryResolver) Nodes(ctx context.Context, substring *string) ([]*model.
 	return nodes, err
 }
 
-func (r *queryResolver) Post(ctx context.Context, id string, title string) (*model.Post, error) {
+func (r *queryResolver) Post(ctx context.Context, id string, slug string) (*model.Post, error) {
 	var post model.Post
 	builder := SQ.Select(`*`).From(`post`)
-	builder = builder.Where(`id=$1 AND title=$2`, id, title)
+	builder = builder.Where(`id=$1 AND slug=$2`, id, slug)
 	query, args, err := builder.ToSql()
 	if err != nil {
 		utils.Stacktrace(err)

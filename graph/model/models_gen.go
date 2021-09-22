@@ -20,7 +20,7 @@ type NewPost struct {
 	Type     PostType `json:"type"`
 	Title    string   `json:"title"`
 	Link     *string  `json:"link"`
-	Delta    *string  `json:"delta"`
+	DeltaOps *string  `json:"deltaOps"`
 	NodeName string   `json:"nodeName"`
 }
 
@@ -37,11 +37,13 @@ type Node struct {
 }
 
 type Post struct {
-	ID       string  `json:"id"`
-	Title    string  `json:"title"`
-	Link     *string `json:"link"`
-	Delta    *string `json:"delta"`
-	NodeName string  `json:"nodeName"`
+	ID                string  `json:"id"`
+	Title             string  `json:"title"`
+	Link              *string `json:"link"`
+	DeltaOps          *string `json:"deltaOps"`
+	NodeName          string  `json:"nodeName"`
+	Slug              string  `json:"slug"`
+	CreationTimestamp int     `json:"creationTimestamp"`
 }
 
 type User struct {
