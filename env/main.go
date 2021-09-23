@@ -30,15 +30,13 @@ func init() {
 		utils.Stacktrace(err)
 	}
 
-	if CONFIG.MODE == "dev" {
-		CONFIG.SECURE_COOKIES = false
-		CONFIG.DOMAIN = CONFIG.DOMAIN_DEV
-		gin.SetMode("debug")
-
-	} else {
+	if CONFIG.MODE == "prod" {
 		CONFIG.SECURE_COOKIES = true
 		CONFIG.DOMAIN = CONFIG.DOMAIN_PROD
 		gin.SetMode("release")
-
+	} else {
+		CONFIG.SECURE_COOKIES = false
+		CONFIG.DOMAIN = CONFIG.DOMAIN_DEV
+		gin.SetMode("debug")
 	}
 }
