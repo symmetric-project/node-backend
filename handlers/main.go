@@ -6,14 +6,21 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	"github.com/symmetric-project/node-backend/env"
 	"github.com/symmetric-project/node-backend/graph"
 	"github.com/symmetric-project/node-backend/graph/generated"
 	"github.com/symmetric-project/node-backend/middleware"
 )
 
 func CORS() gin.HandlerFunc {
+	var allowedOrigin string
+	if env.CONFIG.MODE == "dev" {
+		allowedOrigin = "http://" + env.CONFIG.DOMAIN
+	} else {
+		allowedOrigin = "https://" + env.CONFIG.DOMAIN
+	}
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
