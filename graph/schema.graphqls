@@ -15,7 +15,8 @@ enum PostType {
 }
 
 type User {
-  name: ID!
+  id: ID!
+  name: String!
   bases: Int!
 }
 
@@ -57,16 +58,37 @@ input NewNode {
   description: String
 }
 
+type Comment {
+  id: ID!
+  postId: String!
+  postSlug: String!
+  creationTimestamp: Int!
+  deltaOps: String!
+  userId: String!
+  author: User!
+}
+
+input NewComment {
+  postId: String!
+  postSlug: String!
+  deltaOps: String!
+  userId: String!
+}
+
 type Query {
   node(name: ID!): Node
   nodes(substring: String): [Node!]!
   post(id: ID!, slug: String!): Post
   posts(nodeName: String): [Post]!
-  user(name: ID): User
+  user(id: ID): User
+  users(nameSubstring: String!): [User]!
+  comment(id: ID!): Comment
+  comments(postId: ID!, postSlug: String!): [Comment]!
 }
 
 type Mutation {
   createPost(newPost: NewPost!): Post
   createNode(newNode: NewNode!): Node
   createUser(newUser: NewUser!): User
+  createComment(newComment: NewComment!): Comment
 }

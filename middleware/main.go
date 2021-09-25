@@ -10,11 +10,30 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/symmetric-project/node-backend/env"
+	"github.com/symmetric-project/node-backend/utils"
 )
+
+var SystemResolverContext ResolverContext
+
+func init() {
+	systemJWT, err := NewSystemJWT()
+	SystemResolverContext = NewResolverContext(systemJWT, nil)
+
+	if err != nil {
+		utils.ExitWithStacktrace(err)
+	}
+}
 
 type ResolverContext struct {
 	JWT    *string
 	Writer *gin.ResponseWriter
+}
+
+func NewResolverContext(jwt string, writer *gin.ResponseWriter) ResolverContext {
+	return ResolverContext{
+		Writer: writer, // Add gin.ResponseWriter for the purpose of setting cookies in gqlgen resolvers
+		JWT:    &jwt,
+	}
 }
 
 func GetResolverContext(ctx context.Context) ResolverContext {
@@ -26,18 +45,18 @@ func GenerateJWT(claims jwt.StandardClaims) (string, error) {
 	return unsignedJWT.SignedString([]byte(env.CONFIG.JWT_SECRET))
 }
 
-func GenerateBackdoorJWT() (string, error) {
+func NewSystemJWT() (string, error) {
 	return GenerateJWT(jwt.StandardClaims{
-		Audience: "backdoor",
+		Audience: "system",
 		IssuedAt: time.Now().Unix(),
 	})
 }
 
-func GenerateUserJWT(userName string) (string, error) {
+func NewUserJWT(id string) (string, error) {
 	return GenerateJWT(jwt.StandardClaims{
 		Audience: "user",
 		IssuedAt: time.Now().Unix(),
-		Id:       userName,
+		Id:       id,
 	})
 }
 

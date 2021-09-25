@@ -8,6 +8,23 @@ import (
 	"strconv"
 )
 
+type Comment struct {
+	ID                string `json:"id"`
+	PostID            string `json:"postId"`
+	PostSlug          string `json:"postSlug"`
+	CreationTimestamp int    `json:"creationTimestamp"`
+	DeltaOps          string `json:"deltaOps"`
+	UserID            string `json:"userId"`
+	Author            *User  `json:"author"`
+}
+
+type NewComment struct {
+	PostID   string `json:"postId"`
+	PostSlug string `json:"postSlug"`
+	DeltaOps string `json:"deltaOps"`
+	UserID   string `json:"userId"`
+}
+
 type NewNode struct {
 	Name        string     `json:"name"`
 	Tags        []*string  `json:"tags"`
@@ -47,6 +64,7 @@ type Post struct {
 }
 
 type User struct {
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Bases int    `json:"bases"`
 }
