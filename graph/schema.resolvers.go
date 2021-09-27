@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 	"errors"
-	"log"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/symmetric-project/ngen"
 	"github.com/symmetric-project/node-backend/graph/generated"
@@ -18,14 +18,26 @@ import (
 )
 
 func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost) (*model.Post, error) {
+	var post model.Post
+
+	resolverContext := middleware.GetResolverContext(ctx)
+	if resolverContext.JWT == nil {
+		return &post, errors.New("no jwt in context")
+	}
+	_, claims, err := middleware.VerifyJWT(*resolverContext.JWT)
+	if err != nil {
+		graphql.AddError(ctx, err)
+		return &post, errors.New("invalid jwt")
+	}
+
 	id := utils.NewOctid()
 	slug := slug.Slugify(newPost.Title)
 	creationTimestamp := utils.CurrentTimestamp()
-	builder := SQ.Insert(`post`).Columns(`id`, `title`, `link`, `delta_ops`, `node_name`, `slug`, `creation_timestamp`).Values(id, newPost.Title, newPost.Link, newPost.DeltaOps, newPost.NodeName, slug, creationTimestamp).Suffix("RETURNING *")
-	var post model.Post
+	builder := SQ.Insert(`post`).Columns(`id`, `title`, `link`, `delta_ops`, `node_name`, `slug`, `creation_timestamp`, `author_id`).Values(id, newPost.Title, newPost.Link, newPost.DeltaOps, newPost.NodeName, slug, creationTimestamp, claims.Id).Suffix("RETURNING *")
 	query, args, err := builder.ToSql()
+
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return &post, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &post, query, args...)
@@ -33,11 +45,24 @@ func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost
 }
 
 func (r *mutationResolver) CreateNode(ctx context.Context, newNode model.NewNode) (*model.Node, error) {
-	builder := SQ.Insert(`node`).Columns(`name`, `access`, `nsfw`).Values(newNode.Name, newNode.Access, newNode.Nsfw).Suffix(`RETURNING *`)
 	var node model.Node
+
+	resolverContext := middleware.GetResolverContext(ctx)
+	if resolverContext.JWT == nil {
+		return &node, errors.New("no jwt in context")
+	}
+	_, claims, err := middleware.VerifyJWT(*resolverContext.JWT)
+	if err != nil {
+		graphql.AddError(ctx, err)
+		return &node, errors.New("invalid jwt")
+	}
+
+	creationTimestamp := utils.CurrentTimestamp()
+	builder := SQ.Insert(`node`).Columns(`name`, `access`, `nsfw`, `creation_timestamp`, `creator_id`).Values(newNode.Name, newNode.Access, newNode.Nsfw, creationTimestamp, claims.Id).Suffix(`RETURNING *`)
+
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return &node, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &node, query, args...)
@@ -57,7 +82,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, newUser model.NewUser
 	var user model.User
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return &user, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &user, query, args...)
@@ -73,11 +98,11 @@ func (r *mutationResolver) CreateUser(ctx context.Context, newUser model.NewUser
 func (r *mutationResolver) CreateComment(ctx context.Context, newComment model.NewComment) (*model.Comment, error) {
 	id := utils.NewOctid()
 	creationTimestamp := utils.CurrentTimestamp()
-	builder := SQ.Insert(`comment`).Columns(`id`, `post_id`, `creation_timestamp`, `delta_ops`, `user_id`, `post_slug`).Values(id, newComment.PostID, creationTimestamp, newComment.DeltaOps, newComment.UserID, newComment.PostSlug).Suffix(`RETURNING *`)
+	builder := SQ.Insert(`comment`).Columns(`id`, `post_id`, `creation_timestamp`, `delta_ops`, `author_id`, `post_slug`).Values(id, newComment.PostID, creationTimestamp, newComment.DeltaOps, newComment.AuthorID, newComment.PostSlug).Suffix(`RETURNING *`)
 	var comment model.Comment
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return &comment, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &comment, query, args...)
@@ -89,7 +114,7 @@ func (r *queryResolver) Node(ctx context.Context, name string) (*model.Node, err
 	builder := SQ.Select(`*`).From(`node`).Where(`name = $1`, name)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return &node, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &node, query, args...)
@@ -106,7 +131,7 @@ func (r *queryResolver) Nodes(ctx context.Context, substring *string) ([]*model.
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return nodes, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &nodes, query, args...)
@@ -119,10 +144,21 @@ func (r *queryResolver) Post(ctx context.Context, id string, slug string) (*mode
 	builder = builder.Where(`id = $1 AND slug=$2`, id, slug)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return &post, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &post, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+		return &post, err
+	}
+	systemCtx := context.WithValue(ctx, "resolverContext", middleware.SystemResolverContext)
+	author, err := r.Resolver.Query().User(systemCtx, &post.AuthorID)
+	if err != nil {
+		graphql.AddError(ctx, err)
+		return &post, err
+	}
+	post.Author = author
 	return &post, err
 }
 
@@ -134,15 +170,29 @@ func (r *queryResolver) Posts(ctx context.Context, nodeName *string) ([]*model.P
 	}
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return posts, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &posts, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+		return posts, err
+	}
+	for i, post := range posts {
+		systemCtx := context.WithValue(ctx, "resolverContext", middleware.SystemResolverContext)
+		author, err := r.Resolver.Query().User(systemCtx, &post.AuthorID)
+		if err != nil {
+			graphql.AddError(ctx, err)
+			return posts, err
+		}
+		posts[i].Author = author
+	}
 	return posts, err
 }
 
 func (r *queryResolver) User(ctx context.Context, id *string) (*model.User, error) {
 	var user model.User
+	builder := SQ.Select(`*`).From(`"user"`)
 
 	resolverContext := middleware.GetResolverContext(ctx)
 	if resolverContext.JWT == nil {
@@ -150,22 +200,19 @@ func (r *queryResolver) User(ctx context.Context, id *string) (*model.User, erro
 	}
 	_, claims, err := middleware.VerifyJWT(*resolverContext.JWT)
 	if err != nil {
+		graphql.AddError(ctx, err)
 		return &user, errors.New("invalid jwt")
 	}
 
-	builder := SQ.Select(`*`).From(`"user"`)
-
-	// If a name is not provided, it is replaced with the name from the JWT claims
+	// If an id is not provided, it is replaced with the id from the JWT claims
 	if id == nil {
 		id = &claims.Id
 	}
 	builder = builder.Where(`id = $1`, *id)
 
 	query, args, err := builder.ToSql()
-	log.Println(query)
-	log.Println(args[0])
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return &user, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &user, query, args...)
@@ -181,6 +228,7 @@ func (r *queryResolver) Users(ctx context.Context, nameSubstring string) ([]*mod
 	}
 	_, _, err := middleware.VerifyJWT(*resolverContext.JWT)
 	if err != nil {
+		graphql.AddError(ctx, err)
 		return users, errors.New("invalid jwt")
 	}
 
@@ -188,7 +236,7 @@ func (r *queryResolver) Users(ctx context.Context, nameSubstring string) ([]*mod
 	builder = builder.Where(`name ~ $1`, nameSubstring)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return users, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &users, query, args...)
@@ -200,11 +248,15 @@ func (r *queryResolver) Comment(ctx context.Context, id string) (*model.Comment,
 	builder := SQ.Select(`*`).From(`comment`).Where(`id = $1`, id)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return &comment, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &comment, query, args...)
-	user, err := r.Resolver.Query().User(ctx, &comment.UserID)
+	if err != nil {
+		graphql.AddError(ctx, err)
+		return &comment, err
+	}
+	user, err := r.Resolver.Query().User(ctx, &comment.AuthorID)
 	comment.Author = user
 	return &comment, err
 }
@@ -214,18 +266,21 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, postSlug st
 	builder := SQ.Select(`*`).From(`comment`).Where(`post_id = $1 AND post_slug = $2`, postID, postSlug)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		utils.Stacktrace(err)
+		graphql.AddError(ctx, err)
 		return comments, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &comments, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+		return comments, err
+	}
 	for i, comment := range comments {
-		ctx := context.WithValue(ctx, "resolverContext", middleware.SystemResolverContext)
-		author, err := r.Resolver.Query().User(ctx, &comment.UserID)
-		log.Println(comment.UserID)
-		log.Println(err)
-		/* if err != nil {
+		systemCtx := context.WithValue(ctx, "resolverContext", middleware.SystemResolverContext)
+		author, err := r.Resolver.Query().User(systemCtx, &comment.AuthorID)
+		if err != nil {
+			graphql.AddError(ctx, err)
 			return comments, err
-		} */
+		}
 		comments[i].Author = author
 	}
 	return comments, err

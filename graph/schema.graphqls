@@ -32,6 +32,8 @@ type Post {
   nodeName: String!
   slug: String!
   creationTimestamp: Int!
+  authorId: String!
+  author: User
 }
 
 input NewPost {
@@ -48,6 +50,8 @@ type Node {
   access: NodeAccess!
   nsfw: Boolean!
   description: String
+  creationTimestamp: Int!
+  creatorId: ID!
 }
 
 input NewNode {
@@ -64,7 +68,7 @@ type Comment {
   postSlug: String!
   creationTimestamp: Int!
   deltaOps: String!
-  userId: String!
+  authorId: String!
   author: User!
 }
 
@@ -72,7 +76,7 @@ input NewComment {
   postId: String!
   postSlug: String!
   deltaOps: String!
-  userId: String!
+  authorId: String!
 }
 
 type Query {
