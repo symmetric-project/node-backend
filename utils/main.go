@@ -9,12 +9,12 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-func Stacktrace(err error) {
+func StacktraceError(err error) {
 	err = tracerr.Wrap(err)
 	tracerr.Print(err)
 }
 
-func ExitWithStacktrace(err error) {
+func StacktraceErrorAndExit(err error) {
 	err = tracerr.Wrap(err)
 	tracerr.Print(err)
 	os.Exit(1)

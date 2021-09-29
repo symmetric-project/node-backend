@@ -3,15 +3,9 @@
 # https://gqlgen.com/getting-started/
 
 enum NodeAccess {
-  public
-  restricted
-  private
-}
-
-enum PostType {
-  text
-  media
-  link
+  PUBLIC
+  RESTRICTED
+  PRIVATE
 }
 
 type User {
@@ -34,10 +28,10 @@ type Post {
   creationTimestamp: Int!
   authorId: String!
   author: User
+  karma: Int!
 }
 
 input NewPost {
-  type: PostType!
   title: String!
   link: String
   deltaOps: String
@@ -95,4 +89,6 @@ type Mutation {
   createNode(newNode: NewNode!): Node
   createUser(newUser: NewUser!): User
   createComment(newComment: NewComment!): Comment
+  upvotePost(postId: ID!, postSlug: String!): Boolean
+  downvotePost(postId: ID!, postSlug: String!): Boolean
 }

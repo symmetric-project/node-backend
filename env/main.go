@@ -24,10 +24,10 @@ func init() {
 	viper.SetConfigFile(".env")
 
 	if err := viper.ReadInConfig(); err != nil {
-		utils.Stacktrace(err)
+		utils.StacktraceError(err)
 	}
 	if err := viper.Unmarshal(&CONFIG); err != nil {
-		utils.Stacktrace(err)
+		utils.StacktraceError(err)
 	}
 
 	if CONFIG.MODE == "prod" {

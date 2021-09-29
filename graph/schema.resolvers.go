@@ -33,7 +33,17 @@ func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost
 	id := utils.NewOctid()
 	slug := slug.Slugify(newPost.Title)
 	creationTimestamp := utils.CurrentTimestamp()
-	builder := SQ.Insert(`post`).Columns(`id`, `title`, `link`, `delta_ops`, `node_name`, `slug`, `creation_timestamp`, `author_id`).Values(id, newPost.Title, newPost.Link, newPost.DeltaOps, newPost.NodeName, slug, creationTimestamp, claims.Id).Suffix("RETURNING *")
+
+	var link *string
+	var deltaOps *string
+
+	if newPost.Link != nil {
+		link = newPost.Link
+	} else {
+		deltaOps = newPost.DeltaOps
+	}
+
+	builder := SQ.Insert(`post`).Columns(`id`, `title`, `link`, `delta_ops`, `node_name`, `slug`, `creation_timestamp`, `author_id`).Values(id, newPost.Title, link, deltaOps, newPost.NodeName, slug, creationTimestamp, claims.Id).Suffix("RETURNING *")
 	query, args, err := builder.ToSql()
 
 	if err != nil {
@@ -41,6 +51,9 @@ func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost
 		return &post, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &post, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+	}
 	return &post, err
 }
 
@@ -66,6 +79,9 @@ func (r *mutationResolver) CreateNode(ctx context.Context, newNode model.NewNode
 		return &node, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &node, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+	}
 	return &node, err
 }
 
@@ -91,6 +107,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, newUser model.NewUser
 		jwt, _ := middleware.NewUserJWT(user.ID)
 		cookie := middleware.NewCookie(jwt)
 		middleware.SetCookie(*resolverContext.Writer, cookie)
+	} else {
+		graphql.AddError(ctx, err)
 	}
 	return &user, err
 }
@@ -106,7 +124,22 @@ func (r *mutationResolver) CreateComment(ctx context.Context, newComment model.N
 		return &comment, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &comment, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+	}
 	return &comment, err
+}
+
+func (r *mutationResolver) UpvotePost(ctx context.Context, postID string, postSlug string) (*bool, error) {
+	/* builder := SQ.Update(`post`).Where(`id = $1 AND slug = $2`, postID, postSlug) */
+	var b bool
+	return &b, nil
+}
+
+func (r *mutationResolver) DownvotePost(ctx context.Context, postID string, postSlug string) (*bool, error) {
+	/* builder := SQ.Update(`post`).Where(`id = $1 AND slug = $2`, postID, postSlug) */
+	var b bool
+	return &b, nil
 }
 
 func (r *queryResolver) Node(ctx context.Context, name string) (*model.Node, error) {
@@ -118,6 +151,9 @@ func (r *queryResolver) Node(ctx context.Context, name string) (*model.Node, err
 		return &node, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &node, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+	}
 	return &node, err
 }
 
@@ -135,6 +171,9 @@ func (r *queryResolver) Nodes(ctx context.Context, substring *string) ([]*model.
 		return nodes, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &nodes, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+	}
 	return nodes, err
 }
 
@@ -216,6 +255,9 @@ func (r *queryResolver) User(ctx context.Context, id *string) (*model.User, erro
 		return &user, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &user, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+	}
 	return &user, err
 }
 
@@ -240,6 +282,9 @@ func (r *queryResolver) Users(ctx context.Context, nameSubstring string) ([]*mod
 		return users, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &users, query, args...)
+	if err != nil {
+		graphql.AddError(ctx, err)
+	}
 	return users, err
 }
 
@@ -257,6 +302,9 @@ func (r *queryResolver) Comment(ctx context.Context, id string) (*model.Comment,
 		return &comment, err
 	}
 	user, err := r.Resolver.Query().User(ctx, &comment.AuthorID)
+	if err != nil {
+		graphql.AddError(ctx, err)
+	}
 	comment.Author = user
 	return &comment, err
 }

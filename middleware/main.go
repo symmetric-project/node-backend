@@ -20,7 +20,7 @@ func init() {
 	SystemResolverContext = NewResolverContext(systemJWT, nil)
 
 	if err != nil {
-		utils.ExitWithStacktrace(err)
+		utils.StacktraceErrorAndExit(err)
 	}
 }
 

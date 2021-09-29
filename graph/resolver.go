@@ -25,7 +25,7 @@ func init() {
 	DB, err = pgxpool.Connect(context.Background(), env.CONFIG.DATABASE_URL)
 
 	if err != nil {
-		utils.Stacktrace(err)
+		utils.StacktraceError(err)
 		os.Exit(1)
 	}
 }

@@ -34,11 +34,10 @@ type NewNode struct {
 }
 
 type NewPost struct {
-	Type     PostType `json:"type"`
-	Title    string   `json:"title"`
-	Link     *string  `json:"link"`
-	DeltaOps *string  `json:"deltaOps"`
-	NodeName string   `json:"nodeName"`
+	Title    string  `json:"title"`
+	Link     *string `json:"link"`
+	DeltaOps *string `json:"deltaOps"`
+	NodeName string  `json:"nodeName"`
 }
 
 type NewUser struct {
@@ -65,6 +64,7 @@ type Post struct {
 	CreationTimestamp int     `json:"creationTimestamp"`
 	AuthorID          string  `json:"authorId"`
 	Author            *User   `json:"author"`
+	Karma             int     `json:"karma"`
 }
 
 type User struct {
@@ -76,9 +76,9 @@ type User struct {
 type NodeAccess string
 
 const (
-	NodeAccessPublic     NodeAccess = "public"
-	NodeAccessRestricted NodeAccess = "restricted"
-	NodeAccessPrivate    NodeAccess = "private"
+	NodeAccessPublic     NodeAccess = "PUBLIC"
+	NodeAccessRestricted NodeAccess = "RESTRICTED"
+	NodeAccessPrivate    NodeAccess = "PRIVATE"
 )
 
 var AllNodeAccess = []NodeAccess{
@@ -113,48 +113,5 @@ func (e *NodeAccess) UnmarshalGQL(v interface{}) error {
 }
 
 func (e NodeAccess) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type PostType string
-
-const (
-	PostTypeText  PostType = "text"
-	PostTypeMedia PostType = "media"
-	PostTypeLink  PostType = "link"
-)
-
-var AllPostType = []PostType{
-	PostTypeText,
-	PostTypeMedia,
-	PostTypeLink,
-}
-
-func (e PostType) IsValid() bool {
-	switch e {
-	case PostTypeText, PostTypeMedia, PostTypeLink:
-		return true
-	}
-	return false
-}
-
-func (e PostType) String() string {
-	return string(e)
-}
-
-func (e *PostType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PostType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid PostType", str)
-	}
-	return nil
-}
-
-func (e PostType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
