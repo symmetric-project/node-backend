@@ -25,6 +25,3 @@
 # Air temporary files
 .air.toml
 tmp/
-
-# Gqlgen temporary files
-graph/generated
