@@ -102,6 +102,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, newUser model.NewUser
 		return &user, err
 	}
 	err = pgxscan.Get(context.Background(), DB, &user, query, args...)
+
 	if err == nil {
 		resolverContext := middleware.GetResolverContext(ctx)
 		jwt, _ := middleware.NewUserJWT(user.ID)
@@ -110,6 +111,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, newUser model.NewUser
 	} else {
 		graphql.AddError(ctx, err)
 	}
+
 	return &user, err
 }
 
