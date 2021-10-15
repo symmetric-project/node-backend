@@ -22,19 +22,21 @@ type Post {
   id: ID!
   title: String!
   link: String
-  deltaOps: String
+  rawState: String
   nodeName: String!
   slug: String!
   creationTimestamp: Int!
   authorId: String!
   author: User
-  karma: Int!
+  bases: Int!
+  thumbnaillUrl: String
+  imageUrl: String 
 }
 
 input NewPost {
   title: String!
   link: String
-  deltaOps: String
+  rawState: String
   nodeName: String!
 }
 
@@ -61,7 +63,7 @@ type Comment {
   postId: String!
   postSlug: String!
   creationTimestamp: Int!
-  deltaOps: String!
+  rawState: String!
   authorId: String!
   author: User!
 }
@@ -69,7 +71,7 @@ type Comment {
 input NewComment {
   postId: String!
   postSlug: String!
-  deltaOps: String!
+  rawState: String!
   authorId: String!
 }
 

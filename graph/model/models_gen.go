@@ -13,7 +13,7 @@ type Comment struct {
 	PostID            string `json:"postId"`
 	PostSlug          string `json:"postSlug"`
 	CreationTimestamp int    `json:"creationTimestamp"`
-	DeltaOps          string `json:"deltaOps"`
+	RawState          string `json:"rawState"`
 	AuthorID          string `json:"authorId"`
 	Author            *User  `json:"author"`
 }
@@ -21,7 +21,7 @@ type Comment struct {
 type NewComment struct {
 	PostID   string `json:"postId"`
 	PostSlug string `json:"postSlug"`
-	DeltaOps string `json:"deltaOps"`
+	RawState string `json:"rawState"`
 	AuthorID string `json:"authorId"`
 }
 
@@ -36,7 +36,7 @@ type NewNode struct {
 type NewPost struct {
 	Title    string  `json:"title"`
 	Link     *string `json:"link"`
-	DeltaOps *string `json:"deltaOps"`
+	RawState *string `json:"rawState"`
 	NodeName string  `json:"nodeName"`
 }
 
@@ -52,19 +52,6 @@ type Node struct {
 	Description       *string    `json:"description"`
 	CreationTimestamp int        `json:"creationTimestamp"`
 	CreatorID         string     `json:"creatorId"`
-}
-
-type Post struct {
-	ID                string  `json:"id"`
-	Title             string  `json:"title"`
-	Link              *string `json:"link"`
-	DeltaOps          *string `json:"deltaOps"`
-	NodeName          string  `json:"nodeName"`
-	Slug              string  `json:"slug"`
-	CreationTimestamp int     `json:"creationTimestamp"`
-	AuthorID          string  `json:"authorId"`
-	Author            *User   `json:"author"`
-	Karma             int     `json:"karma"`
 }
 
 type User struct {

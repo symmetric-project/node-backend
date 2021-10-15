@@ -82,7 +82,7 @@ func NewCookie(jwt string) *http.Cookie {
 		Name:     "jwt",
 		Value:    url.QueryEscape(jwt),
 		MaxAge:   int(time.Now().Unix()) * 2,
-		Domain:   env.CONFIG.URL,
+		Domain:   env.CONFIG.COOKIE_DOMAIN,
 		Secure:   env.CONFIG.SECURE_COOKIES,
 		HttpOnly: true,
 		Expires:  time.Now().Add(time.Hour * 24),

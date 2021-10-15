@@ -47,10 +47,10 @@ type ComplexityRoot struct {
 		Author            func(childComplexity int) int
 		AuthorID          func(childComplexity int) int
 		CreationTimestamp func(childComplexity int) int
-		DeltaOps          func(childComplexity int) int
 		ID                func(childComplexity int) int
 		PostID            func(childComplexity int) int
 		PostSlug          func(childComplexity int) int
+		RawState          func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -75,13 +75,15 @@ type ComplexityRoot struct {
 	Post struct {
 		Author            func(childComplexity int) int
 		AuthorID          func(childComplexity int) int
+		Bases             func(childComplexity int) int
 		CreationTimestamp func(childComplexity int) int
-		DeltaOps          func(childComplexity int) int
 		ID                func(childComplexity int) int
-		Karma             func(childComplexity int) int
+		ImageURL          func(childComplexity int) int
 		Link              func(childComplexity int) int
 		NodeName          func(childComplexity int) int
+		RawState          func(childComplexity int) int
 		Slug              func(childComplexity int) int
+		ThumbnaillURL     func(childComplexity int) int
 		Title             func(childComplexity int) int
 	}
 
@@ -158,13 +160,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Comment.CreationTimestamp(childComplexity), true
 
-	case "Comment.deltaOps":
-		if e.complexity.Comment.DeltaOps == nil {
-			break
-		}
-
-		return e.complexity.Comment.DeltaOps(childComplexity), true
-
 	case "Comment.id":
 		if e.complexity.Comment.ID == nil {
 			break
@@ -185,6 +180,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Comment.PostSlug(childComplexity), true
+
+	case "Comment.rawState":
+		if e.complexity.Comment.RawState == nil {
+			break
+		}
+
+		return e.complexity.Comment.RawState(childComplexity), true
 
 	case "Mutation.createComment":
 		if e.complexity.Mutation.CreateComment == nil {
@@ -321,19 +323,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.AuthorID(childComplexity), true
 
+	case "Post.bases":
+		if e.complexity.Post.Bases == nil {
+			break
+		}
+
+		return e.complexity.Post.Bases(childComplexity), true
+
 	case "Post.creationTimestamp":
 		if e.complexity.Post.CreationTimestamp == nil {
 			break
 		}
 
 		return e.complexity.Post.CreationTimestamp(childComplexity), true
-
-	case "Post.deltaOps":
-		if e.complexity.Post.DeltaOps == nil {
-			break
-		}
-
-		return e.complexity.Post.DeltaOps(childComplexity), true
 
 	case "Post.id":
 		if e.complexity.Post.ID == nil {
@@ -342,12 +344,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.ID(childComplexity), true
 
-	case "Post.karma":
-		if e.complexity.Post.Karma == nil {
+	case "Post.imageUrl":
+		if e.complexity.Post.ImageURL == nil {
 			break
 		}
 
-		return e.complexity.Post.Karma(childComplexity), true
+		return e.complexity.Post.ImageURL(childComplexity), true
 
 	case "Post.link":
 		if e.complexity.Post.Link == nil {
@@ -363,12 +365,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.NodeName(childComplexity), true
 
+	case "Post.rawState":
+		if e.complexity.Post.RawState == nil {
+			break
+		}
+
+		return e.complexity.Post.RawState(childComplexity), true
+
 	case "Post.slug":
 		if e.complexity.Post.Slug == nil {
 			break
 		}
 
 		return e.complexity.Post.Slug(childComplexity), true
+
+	case "Post.thumbnaillUrl":
+		if e.complexity.Post.ThumbnaillURL == nil {
+			break
+		}
+
+		return e.complexity.Post.ThumbnaillURL(childComplexity), true
 
 	case "Post.title":
 		if e.complexity.Post.Title == nil {
@@ -582,19 +598,21 @@ type Post {
   id: ID!
   title: String!
   link: String
-  deltaOps: String
+  rawState: String
   nodeName: String!
   slug: String!
   creationTimestamp: Int!
   authorId: String!
   author: User
-  karma: Int!
+  bases: Int!
+  thumbnaillUrl: String
+  imageUrl: String 
 }
 
 input NewPost {
   title: String!
   link: String
-  deltaOps: String
+  rawState: String
   nodeName: String!
 }
 
@@ -621,7 +639,7 @@ type Comment {
   postId: String!
   postSlug: String!
   creationTimestamp: Int!
-  deltaOps: String!
+  rawState: String!
   authorId: String!
   author: User!
 }
@@ -629,7 +647,7 @@ type Comment {
 input NewComment {
   postId: String!
   postSlug: String!
-  deltaOps: String!
+  rawState: String!
   authorId: String!
 }
 
@@ -1099,7 +1117,7 @@ func (ec *executionContext) _Comment_creationTimestamp(ctx context.Context, fiel
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Comment_deltaOps(ctx context.Context, field graphql.CollectedField, obj *model.Comment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Comment_rawState(ctx context.Context, field graphql.CollectedField, obj *model.Comment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1117,7 +1135,7 @@ func (ec *executionContext) _Comment_deltaOps(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DeltaOps, nil
+		return obj.RawState, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1779,7 +1797,7 @@ func (ec *executionContext) _Post_link(ctx context.Context, field graphql.Collec
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Post_deltaOps(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+func (ec *executionContext) _Post_rawState(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1797,7 +1815,7 @@ func (ec *executionContext) _Post_deltaOps(ctx context.Context, field graphql.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DeltaOps, nil
+		return obj.RawState, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1983,7 +2001,7 @@ func (ec *executionContext) _Post_author(ctx context.Context, field graphql.Coll
 	return ec.marshalOUser2ᚖgithubᚗcomᚋsymmetricᚑprojectᚋnodeᚑbackendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Post_karma(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+func (ec *executionContext) _Post_bases(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2001,7 +2019,7 @@ func (ec *executionContext) _Post_karma(ctx context.Context, field graphql.Colle
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Karma, nil
+		return obj.Bases, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2016,6 +2034,70 @@ func (ec *executionContext) _Post_karma(ctx context.Context, field graphql.Colle
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_thumbnaillUrl(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Post",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ThumbnaillURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_imageUrl(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Post",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImageURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2653,6 +2735,41 @@ func (ec *executionContext) ___Directive_args(ctx context.Context, field graphql
 	res := resTmp.([]introspection.InputValue)
 	fc.Result = res
 	return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) ___Directive_isRepeatable(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "__Directive",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsRepeatable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___EnumValue_name(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) (ret graphql.Marshaler) {
@@ -3607,7 +3724,10 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 func (ec *executionContext) unmarshalInputNewComment(ctx context.Context, obj interface{}) (model.NewComment, error) {
 	var it model.NewComment
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -3627,11 +3747,11 @@ func (ec *executionContext) unmarshalInputNewComment(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
-		case "deltaOps":
+		case "rawState":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deltaOps"))
-			it.DeltaOps, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawState"))
+			it.RawState, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3651,7 +3771,10 @@ func (ec *executionContext) unmarshalInputNewComment(ctx context.Context, obj in
 
 func (ec *executionContext) unmarshalInputNewNode(ctx context.Context, obj interface{}) (model.NewNode, error) {
 	var it model.NewNode
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -3703,7 +3826,10 @@ func (ec *executionContext) unmarshalInputNewNode(ctx context.Context, obj inter
 
 func (ec *executionContext) unmarshalInputNewPost(ctx context.Context, obj interface{}) (model.NewPost, error) {
 	var it model.NewPost
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -3723,11 +3849,11 @@ func (ec *executionContext) unmarshalInputNewPost(ctx context.Context, obj inter
 			if err != nil {
 				return it, err
 			}
-		case "deltaOps":
+		case "rawState":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deltaOps"))
-			it.DeltaOps, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawState"))
+			it.RawState, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3747,7 +3873,10 @@ func (ec *executionContext) unmarshalInputNewPost(ctx context.Context, obj inter
 
 func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj interface{}) (model.NewUser, error) {
 	var it model.NewUser
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -3804,8 +3933,8 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "deltaOps":
-			out.Values[i] = ec._Comment_deltaOps(ctx, field, obj)
+		case "rawState":
+			out.Values[i] = ec._Comment_rawState(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3942,8 +4071,8 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "link":
 			out.Values[i] = ec._Post_link(ctx, field, obj)
-		case "deltaOps":
-			out.Values[i] = ec._Post_deltaOps(ctx, field, obj)
+		case "rawState":
+			out.Values[i] = ec._Post_rawState(ctx, field, obj)
 		case "nodeName":
 			out.Values[i] = ec._Post_nodeName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3966,11 +4095,15 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "author":
 			out.Values[i] = ec._Post_author(ctx, field, obj)
-		case "karma":
-			out.Values[i] = ec._Post_karma(ctx, field, obj)
+		case "bases":
+			out.Values[i] = ec._Post_bases(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "thumbnaillUrl":
+			out.Values[i] = ec._Post_thumbnaillUrl(ctx, field, obj)
+		case "imageUrl":
+			out.Values[i] = ec._Post_imageUrl(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4174,6 +4307,11 @@ func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionS
 			}
 		case "args":
 			out.Values[i] = ec.___Directive_args(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isRepeatable":
+			out.Values[i] = ec.___Directive_isRepeatable(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4443,6 +4581,7 @@ func (ec *executionContext) marshalNComment2ᚕᚖgithubᚗcomᚋsymmetricᚑpro
 
 	}
 	wg.Wait()
+
 	return ret
 }
 
@@ -4530,6 +4669,13 @@ func (ec *executionContext) marshalNNode2ᚕᚖgithubᚗcomᚋsymmetricᚑprojec
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -4587,6 +4733,7 @@ func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋsymmetricᚑprojec
 
 	}
 	wg.Wait()
+
 	return ret
 }
 
@@ -4639,6 +4786,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋsymmetricᚑprojec
 
 	}
 	wg.Wait()
+
 	return ret
 }
 
@@ -4690,6 +4838,13 @@ func (ec *executionContext) marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgq
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -4763,6 +4918,13 @@ func (ec *executionContext) marshalN__DirectiveLocation2ᚕstringᚄ(ctx context
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -4812,6 +4974,13 @@ func (ec *executionContext) marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋg
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -4853,6 +5022,13 @@ func (ec *executionContext) marshalN__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgen�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -5045,6 +5221,13 @@ func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgq
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -5085,6 +5268,13 @@ func (ec *executionContext) marshalO__Field2ᚕgithubᚗcomᚋ99designsᚋgqlgen
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -5125,6 +5315,13 @@ func (ec *executionContext) marshalO__InputValue2ᚕgithubᚗcomᚋ99designsᚋg
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -5172,6 +5369,13 @@ func (ec *executionContext) marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgen�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 

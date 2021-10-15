@@ -15,7 +15,7 @@ type Config struct {
 	DOMAIN_DEV  string `mapstructure:"DOMAIN_DEV"`
 	DOMAIN_PROD string `mapstructure:"DOMAIN_PROD"`
 
-	URL string
+	COOKIE_DOMAIN string
 
 	SECURE_COOKIES bool
 }
@@ -35,12 +35,12 @@ func init() {
 	if CONFIG.MODE == "prod" {
 		CONFIG.SECURE_COOKIES = true
 		CONFIG.DOMAIN = CONFIG.DOMAIN_PROD
-		CONFIG.URL = "https://" + CONFIG.DOMAIN
+		CONFIG.COOKIE_DOMAIN = "https://" + CONFIG.DOMAIN
 		gin.SetMode("release")
 	} else {
 		CONFIG.SECURE_COOKIES = false
 		CONFIG.DOMAIN = CONFIG.DOMAIN_DEV
-		CONFIG.URL = "http://" + CONFIG.DOMAIN + ":3000"
+		CONFIG.COOKIE_DOMAIN = CONFIG.DOMAIN
 		gin.SetMode("debug")
 	}
 }

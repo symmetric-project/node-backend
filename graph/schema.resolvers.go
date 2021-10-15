@@ -34,16 +34,16 @@ func (r *mutationResolver) CreatePost(ctx context.Context, newPost model.NewPost
 	slug := slug.Slugify(newPost.Title)
 	creationTimestamp := utils.CurrentTimestamp()
 
-	var link *string
-	var deltaOps *string
+	/* var link *string
+	var rawState *string
 
 	if newPost.Link != nil {
 		link = newPost.Link
 	} else {
-		deltaOps = newPost.DeltaOps
-	}
+		rawState = newPost.RawState
+	} */
 
-	builder := SQ.Insert(`post`).Columns(`id`, `title`, `link`, `delta_ops`, `node_name`, `slug`, `creation_timestamp`, `author_id`).Values(id, newPost.Title, link, deltaOps, newPost.NodeName, slug, creationTimestamp, claims.Id).Suffix("RETURNING *")
+	builder := SQ.Insert(`post`).Columns(`id`, `title`, `link`, `raw_state`, `node_name`, `slug`, `creation_timestamp`, `author_id`).Values(id, newPost.Title, newPost.Link, "newPost.RawState", newPost.NodeName, slug, creationTimestamp, claims.Id).Suffix("RETURNING *")
 	query, args, err := builder.ToSql()
 
 	if err != nil {
@@ -118,7 +118,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, newUser model.NewUser
 func (r *mutationResolver) CreateComment(ctx context.Context, newComment model.NewComment) (*model.Comment, error) {
 	id := utils.NewOctid()
 	creationTimestamp := utils.CurrentTimestamp()
-	builder := SQ.Insert(`comment`).Columns(`id`, `post_id`, `creation_timestamp`, `delta_ops`, `author_id`, `post_slug`).Values(id, newComment.PostID, creationTimestamp, newComment.DeltaOps, newComment.AuthorID, newComment.PostSlug).Suffix(`RETURNING *`)
+	builder := SQ.Insert(`comment`).Columns(`id`, `post_id`, `creation_timestamp`, `raw_state`, `author_id`, `post_slug`).Values(id, newComment.PostID, creationTimestamp, "", newComment.AuthorID, newComment.PostSlug).Suffix(`RETURNING *`)
 	var comment model.Comment
 	query, args, err := builder.ToSql()
 	if err != nil {
