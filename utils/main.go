@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"net/http"
 	"os"
 	"time"
 
@@ -33,4 +34,9 @@ func NewOctid() string {
 
 func CurrentTimestamp() int {
 	return int(time.Now().Unix())
+}
+
+func GetUrlHealthy(url string) bool {
+	response, _ := http.Get(url)
+	return response.StatusCode == 200
 }

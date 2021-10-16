@@ -203,11 +203,17 @@ func (r *queryResolver) Post(ctx context.Context, id string, slug string) (*mode
 	return &post, err
 }
 
-func (r *queryResolver) Posts(ctx context.Context, nodeName *string) ([]*model.Post, error) {
+func (r *queryResolver) Posts(ctx context.Context, nodeName *string, limit *int, offset *int) ([]*model.Post, error) {
 	var posts []*model.Post
 	builder := SQ.Select(`*`).From(`post`)
 	if nodeName != nil {
 		builder = builder.Where(`node_name = $1`, *nodeName)
+	}
+	if limit != nil {
+		builder = builder.Limit(uint64(*limit))
+	}
+	if offset != nil {
+		builder = builder.Offset(uint64(*offset))
 	}
 	query, args, err := builder.ToSql()
 	if err != nil {

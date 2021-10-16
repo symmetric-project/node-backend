@@ -31,6 +31,7 @@ type Post {
   bases: Int!
   thumbnaillUrl: String
   imageUrl: String 
+  views: Int!
 }
 
 input NewPost {
@@ -79,7 +80,7 @@ type Query {
   node(name: ID!): Node
   nodes(substring: String): [Node!]!
   post(id: ID!, slug: String!): Post
-  posts(nodeName: String): [Post]!
+  posts(nodeName: String, limit: Int, offset: Int): [Post]!
   user(id: ID): User
   users(nameSubstring: String!): [User]!
   comment(id: ID!): Comment

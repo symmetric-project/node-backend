@@ -85,6 +85,7 @@ type ComplexityRoot struct {
 		Slug              func(childComplexity int) int
 		ThumbnaillURL     func(childComplexity int) int
 		Title             func(childComplexity int) int
+		Views             func(childComplexity int) int
 	}
 
 	Query struct {
@@ -93,7 +94,7 @@ type ComplexityRoot struct {
 		Node     func(childComplexity int, name string) int
 		Nodes    func(childComplexity int, substring *string) int
 		Post     func(childComplexity int, id string, slug string) int
-		Posts    func(childComplexity int, nodeName *string) int
+		Posts    func(childComplexity int, nodeName *string, limit *int, offset *int) int
 		User     func(childComplexity int, id *string) int
 		Users    func(childComplexity int, nameSubstring string) int
 	}
@@ -117,7 +118,7 @@ type QueryResolver interface {
 	Node(ctx context.Context, name string) (*model.Node, error)
 	Nodes(ctx context.Context, substring *string) ([]*model.Node, error)
 	Post(ctx context.Context, id string, slug string) (*model.Post, error)
-	Posts(ctx context.Context, nodeName *string) ([]*model.Post, error)
+	Posts(ctx context.Context, nodeName *string, limit *int, offset *int) ([]*model.Post, error)
 	User(ctx context.Context, id *string) (*model.User, error)
 	Users(ctx context.Context, nameSubstring string) ([]*model.User, error)
 	Comment(ctx context.Context, id string) (*model.Comment, error)
@@ -393,6 +394,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.Title(childComplexity), true
 
+	case "Post.views":
+		if e.complexity.Post.Views == nil {
+			break
+		}
+
+		return e.complexity.Post.Views(childComplexity), true
+
 	case "Query.comment":
 		if e.complexity.Query.Comment == nil {
 			break
@@ -463,7 +471,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Posts(childComplexity, args["nodeName"].(*string)), true
+		return e.complexity.Query.Posts(childComplexity, args["nodeName"].(*string), args["limit"].(*int), args["offset"].(*int)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -607,6 +615,7 @@ type Post {
   bases: Int!
   thumbnaillUrl: String
   imageUrl: String 
+  views: Int!
 }
 
 input NewPost {
@@ -655,7 +664,7 @@ type Query {
   node(name: ID!): Node
   nodes(substring: String): [Node!]!
   post(id: ID!, slug: String!): Post
-  posts(nodeName: String): [Post]!
+  posts(nodeName: String, limit: Int, offset: Int): [Post]!
   user(id: ID): User
   users(nameSubstring: String!): [User]!
   comment(id: ID!): Comment
@@ -906,6 +915,24 @@ func (ec *executionContext) field_Query_posts_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["nodeName"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg2
 	return args, nil
 }
 
@@ -2100,6 +2127,41 @@ func (ec *executionContext) _Post_imageUrl(ctx context.Context, field graphql.Co
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Post_views(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Post",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Views, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2245,7 +2307,7 @@ func (ec *executionContext) _Query_posts(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Posts(rctx, args["nodeName"].(*string))
+		return ec.resolvers.Query().Posts(rctx, args["nodeName"].(*string), args["limit"].(*int), args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4104,6 +4166,11 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Post_thumbnaillUrl(ctx, field, obj)
 		case "imageUrl":
 			out.Values[i] = ec._Post_imageUrl(ctx, field, obj)
+		case "views":
+			out.Values[i] = ec._Post_views(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5101,6 +5168,21 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	return graphql.MarshalID(*v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalInt(*v)
 }
 
 func (ec *executionContext) marshalONode2ᚖgithubᚗcomᚋsymmetricᚑprojectᚋnodeᚑbackendᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v *model.Node) graphql.Marshaler {

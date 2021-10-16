@@ -13,4 +13,5 @@ type Post struct {
 	Bases             int     `json:"bases"`
 	ThumbnaillURL     *string `json:"thumbnaillUrl" db:"thumbnail_url"`
 	ImageURL          *string `json:"imageUrl" db:"image_url"`
+	Views             int     `json:"views"`
 }
