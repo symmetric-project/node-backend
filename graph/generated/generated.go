@@ -67,6 +67,7 @@ type ComplexityRoot struct {
 		CreationTimestamp func(childComplexity int) int
 		CreatorID         func(childComplexity int) int
 		Description       func(childComplexity int) int
+		Members           func(childComplexity int) int
 		Name              func(childComplexity int) int
 		Nsfw              func(childComplexity int) int
 		Tags              func(childComplexity int) int
@@ -92,11 +93,11 @@ type ComplexityRoot struct {
 		Comment  func(childComplexity int, id string) int
 		Comments func(childComplexity int, postID string, postSlug string) int
 		Node     func(childComplexity int, name string) int
-		Nodes    func(childComplexity int, substring *string) int
+		Nodes    func(childComplexity int, substring *string, limit *int, sortingParams *model.SortingParams) int
 		Post     func(childComplexity int, id string, slug string) int
 		Posts    func(childComplexity int, nodeName *string, limit *int, offset *int) int
 		User     func(childComplexity int, id *string) int
-		Users    func(childComplexity int, nameSubstring string) int
+		Users    func(childComplexity int, userNameSubstring *string) int
 	}
 
 	User struct {
@@ -116,11 +117,11 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Node(ctx context.Context, name string) (*model.Node, error)
-	Nodes(ctx context.Context, substring *string) ([]*model.Node, error)
+	Nodes(ctx context.Context, substring *string, limit *int, sortingParams *model.SortingParams) ([]*model.Node, error)
 	Post(ctx context.Context, id string, slug string) (*model.Post, error)
 	Posts(ctx context.Context, nodeName *string, limit *int, offset *int) ([]*model.Post, error)
 	User(ctx context.Context, id *string) (*model.User, error)
-	Users(ctx context.Context, nameSubstring string) ([]*model.User, error)
+	Users(ctx context.Context, userNameSubstring *string) ([]*model.User, error)
 	Comment(ctx context.Context, id string) (*model.Comment, error)
 	Comments(ctx context.Context, postID string, postSlug string) ([]*model.Comment, error)
 }
@@ -289,6 +290,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Node.Description(childComplexity), true
 
+	case "Node.members":
+		if e.complexity.Node.Members == nil {
+			break
+		}
+
+		return e.complexity.Node.Members(childComplexity), true
+
 	case "Node.name":
 		if e.complexity.Node.Name == nil {
 			break
@@ -447,7 +455,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Nodes(childComplexity, args["substring"].(*string)), true
+		return e.complexity.Query.Nodes(childComplexity, args["substring"].(*string), args["limit"].(*int), args["sortingParams"].(*model.SortingParams)), true
 
 	case "Query.post":
 		if e.complexity.Query.Post == nil {
@@ -495,7 +503,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Users(childComplexity, args["nameSubstring"].(string)), true
+		return e.complexity.Query.Users(childComplexity, args["userNameSubstring"].(*string)), true
 
 	case "User.bases":
 		if e.complexity.User.Bases == nil {
@@ -614,7 +622,7 @@ type Post {
   author: User
   bases: Int!
   thumbnaillUrl: String
-  imageUrl: String 
+  imageUrl: String
   views: Int!
 }
 
@@ -633,6 +641,7 @@ type Node {
   description: String
   creationTimestamp: Int!
   creatorId: ID!
+  members: Int!
 }
 
 input NewNode {
@@ -660,13 +669,18 @@ input NewComment {
   authorId: String!
 }
 
+input SortingParams {
+  param: String
+  sort: String
+}
+
 type Query {
   node(name: ID!): Node
-  nodes(substring: String): [Node!]!
+  nodes(substring: String, limit: Int, sortingParams: SortingParams): [Node!]!
   post(id: ID!, slug: String!): Post
   posts(nodeName: String, limit: Int, offset: Int): [Post]!
   user(id: ID): User
-  users(nameSubstring: String!): [User]!
+  users(userNameSubstring: String): [User]!
   comment(id: ID!): Comment
   comments(postId: ID!, postSlug: String!): [Comment]!
 }
@@ -876,6 +890,24 @@ func (ec *executionContext) field_Query_nodes_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["substring"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 *model.SortingParams
+	if tmp, ok := rawArgs["sortingParams"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortingParams"))
+		arg2, err = ec.unmarshalOSortingParams2ᚖgithubᚗcomᚋsymmetricᚑprojectᚋnodeᚑbackendᚋgraphᚋmodelᚐSortingParams(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sortingParams"] = arg2
 	return args, nil
 }
 
@@ -954,15 +986,15 @@ func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs m
 func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["nameSubstring"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameSubstring"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg0 *string
+	if tmp, ok := rawArgs["userNameSubstring"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userNameSubstring"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["nameSubstring"] = arg0
+	args["userNameSubstring"] = arg0
 	return args, nil
 }
 
@@ -1722,6 +1754,41 @@ func (ec *executionContext) _Node_creatorId(ctx context.Context, field graphql.C
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Node_members(ctx context.Context, field graphql.CollectedField, obj *model.Node) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Node",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Members, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Post_id(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2226,7 +2293,7 @@ func (ec *executionContext) _Query_nodes(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Nodes(rctx, args["substring"].(*string))
+		return ec.resolvers.Query().Nodes(rctx, args["substring"].(*string), args["limit"].(*int), args["sortingParams"].(*model.SortingParams))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2388,7 +2455,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx, args["nameSubstring"].(string))
+		return ec.resolvers.Query().Users(rctx, args["userNameSubstring"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3956,6 +4023,37 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSortingParams(ctx context.Context, obj interface{}) (model.SortingParams, error) {
+	var it model.SortingParams
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "param":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("param"))
+			it.Param, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sort":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+			it.Sort, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4096,6 +4194,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "creatorId":
 			out.Values[i] = ec._Node_creatorId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "members":
+			out.Values[i] = ec._Node_members(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5197,6 +5300,14 @@ func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋsymmetricᚑproject�
 		return graphql.Null
 	}
 	return ec._Post(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSortingParams2ᚖgithubᚗcomᚋsymmetricᚑprojectᚋnodeᚑbackendᚋgraphᚋmodelᚐSortingParams(ctx context.Context, v interface{}) (*model.SortingParams, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSortingParams(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

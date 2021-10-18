@@ -30,7 +30,7 @@ type Post {
   author: User
   bases: Int!
   thumbnaillUrl: String
-  imageUrl: String 
+  imageUrl: String
   views: Int!
 }
 
@@ -49,6 +49,7 @@ type Node {
   description: String
   creationTimestamp: Int!
   creatorId: ID!
+  members: Int!
 }
 
 input NewNode {
@@ -76,13 +77,18 @@ input NewComment {
   authorId: String!
 }
 
+input SortingParams {
+  param: String
+  sort: String
+}
+
 type Query {
   node(name: ID!): Node
-  nodes(substring: String): [Node!]!
+  nodes(substring: String, limit: Int, sortingParams: SortingParams): [Node!]!
   post(id: ID!, slug: String!): Post
   posts(nodeName: String, limit: Int, offset: Int): [Post]!
   user(id: ID): User
-  users(nameSubstring: String!): [User]!
+  users(userNameSubstring: String): [User]!
   comment(id: ID!): Comment
   comments(postId: ID!, postSlug: String!): [Comment]!
 }

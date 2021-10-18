@@ -52,6 +52,12 @@ type Node struct {
 	Description       *string    `json:"description"`
 	CreationTimestamp int        `json:"creationTimestamp"`
 	CreatorID         string     `json:"creatorId"`
+	Members           int        `json:"members"`
+}
+
+type SortingParams struct {
+	Param *string `json:"param"`
+	Sort  *string `json:"sort"`
 }
 
 type User struct {

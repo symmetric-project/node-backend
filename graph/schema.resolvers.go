@@ -159,7 +159,7 @@ func (r *queryResolver) Node(ctx context.Context, name string) (*model.Node, err
 	return &node, err
 }
 
-func (r *queryResolver) Nodes(ctx context.Context, substring *string) ([]*model.Node, error) {
+func (r *queryResolver) Nodes(ctx context.Context, substring *string, limit *int, sortingParams *model.SortingParams) ([]*model.Node, error) {
 	var nodes []*model.Node
 	builder := SQ.Select(`*`).From(`node`)
 
@@ -167,13 +167,23 @@ func (r *queryResolver) Nodes(ctx context.Context, substring *string) ([]*model.
 		builder = builder.Where(`name ~ $1`, *substring)
 	}
 
+	if sortingParams != nil {
+		builder = builder.OrderBy(*sortingParams.Param + " " + *sortingParams.Sort)
+	}
+
+	if limit != nil {
+		builder = builder.Limit(uint64(*limit))
+	}
+
 	query, args, err := builder.ToSql()
 	if err != nil {
+		utils.StacktraceError(err)
 		graphql.AddError(ctx, err)
 		return nodes, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &nodes, query, args...)
 	if err != nil {
+		utils.StacktraceError(err)
 		graphql.AddError(ctx, err)
 	}
 	return nodes, err
@@ -252,10 +262,12 @@ func (r *queryResolver) User(ctx context.Context, id *string) (*model.User, erro
 	}
 
 	// If an id is not provided, it is replaced with the id from the JWT claims
-	if id == nil {
+	if claims != nil && len(claims.Id) > 1 {
 		id = &claims.Id
 	}
-	builder = builder.Where(`id = $1`, *id)
+	if id != nil {
+		builder = builder.Where(`id = $1`, *id)
+	}
 
 	query, args, err := builder.ToSql()
 	if err != nil {
@@ -269,10 +281,10 @@ func (r *queryResolver) User(ctx context.Context, id *string) (*model.User, erro
 	return &user, err
 }
 
-func (r *queryResolver) Users(ctx context.Context, nameSubstring string) ([]*model.User, error) {
+func (r *queryResolver) Users(ctx context.Context, userNameSubstring *string) ([]*model.User, error) {
 	var users []*model.User
 
-	resolverContext := middleware.GetResolverContext(ctx)
+	/* resolverContext := middleware.GetResolverContext(ctx)
 	if resolverContext.JWT == nil {
 		return users, errors.New("no jwt in context")
 	}
@@ -281,16 +293,20 @@ func (r *queryResolver) Users(ctx context.Context, nameSubstring string) ([]*mod
 		graphql.AddError(ctx, err)
 		return users, errors.New("invalid jwt")
 	}
-
-	builder := SQ.Select(`*`).From(`comment`)
-	builder = builder.Where(`name ~ $1`, nameSubstring)
+	*/
+	builder := SQ.Select(`*`).From(`"user"`)
+	if userNameSubstring != nil {
+		builder = builder.Where(`name ~ $1`, userNameSubstring)
+	}
 	query, args, err := builder.ToSql()
 	if err != nil {
+		utils.StacktraceError(err)
 		graphql.AddError(ctx, err)
 		return users, err
 	}
 	err = pgxscan.Select(context.Background(), DB, &users, query, args...)
 	if err != nil {
+		utils.StacktraceError(err)
 		graphql.AddError(ctx, err)
 	}
 	return users, err
